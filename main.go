@@ -24,7 +24,8 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	var addr string = ":8080"
-	http.Handle("/", &templateHandler{filename: "index.html"})
+	http.Handle("/home", &templateHandler{filename: "index.html"})
+	http.HandleFunc("/createroom", createRoom)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
