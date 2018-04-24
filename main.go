@@ -26,6 +26,8 @@ func main() {
 	var addr string = ":8080"
 	http.Handle("/home", &templateHandler{filename: "index.html"})
 	http.HandleFunc("/createroom", createRoom)
+	http.HandleFunc("/joinroom/", joinRoom)
+	http.Handle("/room/", &templateHandler{filename: "room.html"})
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
