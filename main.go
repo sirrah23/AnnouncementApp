@@ -24,6 +24,7 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	var addr string = ":8080"
+    http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.Handle("/home", &templateHandler{filename: "index.html"})
 	http.HandleFunc("/createroom", createRoom)
 	http.HandleFunc("/joinroom/", joinRoom)

@@ -119,11 +119,11 @@ var allrooms map[string]*room = make(map[string]*room)
 
 func createRoom(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
-	log.Println(fmt.Sprintf("[HS] Creating room %s", name))
+	log.Println(fmt.Sprintf("[S] Creating room %s", name))
 	newroom := newRoom(name)
 	go newroom.run()
 	allrooms[name] = newroom
-	log.Println(fmt.Sprintf("[HS] Room %s created", name))
+	log.Println(fmt.Sprintf("[S] Room %s created", name))
 }
 
 func getRoom(name string) (bool, *room) {

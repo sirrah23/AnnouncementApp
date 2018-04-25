@@ -12,30 +12,17 @@
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
         crossorigin="anonymous"
     >
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <title>Announce</title>
   </head>
   <body>
-      <div class="container">
-          <h1>Room</h1>
+      <div id="app" class="container">
+          <h1>${room}</h1>
+          <ul><li v-for="announcement in announcements">
+                  ${announcement}
+              </li>
+          </ul>
       </div>
-      <script>
-          (function(){
-                let socket = null;
-                const  path = "{{.URL.Path}}".split("/");
-                const roomname = path[path.length-1];
-                if(!window["WebSocket"]){
-                    alert("Error: Your browser does not support web sockets.");
-                } else {
-                    socket = new WebSocket("ws://{{.Host}}/joinroom/"+roomname);
-                    socket.onclose = function(){
-                        alert("Connection has been closed.");
-                    }
-                    socket.onmessage = function(e){
-                        console.log(e.data);
-                    }
-                    setTimeout(function(){socket.send("Test Message")}, 2000);
-                }
-          })();
-      </script>
+      <script src="/static/room.js"></script>
   </body>
 </html>
