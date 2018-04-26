@@ -18,10 +18,14 @@
   <body>
       <div id="app" class="container">
           <h1>${room}</h1>
-          <ul><li v-for="announcement in announcements">
+          <div class="my-2">
+              <input class="form-control" type="text" placeholder="Default input" v-model="newMessage" @keyup.13="sendMessage">
+          </div>
+          <div class="card my-2" v-for="announcement in announcements">
+              <div class="card-body">
                   ${announcement}
-              </li>
-          </ul>
+              </div>
+          </div>
       </div>
       <script src="/static/room.js"></script>
   </body>

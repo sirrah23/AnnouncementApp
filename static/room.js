@@ -23,11 +23,17 @@ const app = new Vue({
     data:{
         announcements: [],
         room: null,
-        socket: null
+        socket: null,
+        newMessage: null
     },
     methods:{
         onMessage: function(m){
-            this.announcements.push(m.data);
+            this.announcements.unshift(m.data);
+        },
+        sendMessage: function(){
+            if(!this.newMessage || this.newMessage.length == 0) return;
+            this.socket.send(this.newMessage);
+            this.newMessage = null;
         }
     },
     created: function(){
