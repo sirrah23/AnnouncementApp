@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/gosimple/slug"
 )
 
 type room struct {
@@ -93,38 +94,16 @@ var upgrader = &websocket.Upgrader{
 	WriteBufferSize: socketBufferSize,
 }
 
-/**
-func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	socket, err := upgrader.Upgrade(w, req, nil)
-
-	if err != nil {
-		log.Fatal("ServeHTTP:", err)
-		return
-	}
-
-	client := &client{
-		socket: socket,
-		send:   make(chan []byte, messageBufferSize),
-		room:   r,
-	}
-
-	r.join <- client
-	defer func() { r.leave <- client }()
-	go client.write()
-	client.read()
-}
-*/
-
 var allrooms map[string]*room = make(map[string]*room)
 
 func createRoom(w http.ResponseWriter, r *http.Request) {
-	name := r.FormValue("name")
-	log.Println(fmt.Sprintf("[S] Creating room %s", name))
-	newroom := newRoom(name)
+	roomName := slug.Make(r.FormValue("name"))
+	log.Println(fmt.Sprintf("[S] Creating room %s", roomName))
+	newroom := newRoom(roomName)
 	go newroom.run()
-	allrooms[name] = newroom
-	http.Redirect(w, r, "/room/"+name, http.StatusFound) //StatusRedirect instead?
-	log.Println(fmt.Sprintf("[S] Room %s created", name))
+	allrooms[roomName] = newroom //TODO: Add check for room existence
+	http.Redirect(w, r, fmt.Sprintf("/room/%s", roomName), http.StatusFound)
+	log.Println(fmt.Sprintf("[S] Room %s created", roomName))
 }
 
 func getRoom(name string) (bool, *room) {
