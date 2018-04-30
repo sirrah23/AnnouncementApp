@@ -1,14 +1,5 @@
 package main
 
-import (
-	"fmt"
-	"log"
-	"net/http"
-
-	"github.com/gorilla/websocket"
-	"github.com/gosimple/slug"
-)
-
 type room struct {
 	name          string
 	announcements []string
@@ -16,55 +7,6 @@ type room struct {
 	join          chan *client
 	leave         chan *client
 	clients       map[*client]bool
-}
-
-func newRoom(name string) *room {
-	return &room{
-		name:          name,
-		announcements: make([]string, 0),
-		forward:       make(chan []byte),
-		join:          make(chan *client),
-		leave:         make(chan *client),
-		clients:       make(map[*client]bool),
-	}
-}
-
-func joinRoom(w http.ResponseWriter, r *http.Request) {
-	log.Println("[S] Join room started")
-	name := r.URL.Path[len("/joinroom/"):]
-
-	log.Println("[S] Retrieving room")
-	success, room := getRoom(name)
-
-	log.Println("[S] Checking success")
-	if !success {
-		http.Error(w, fmt.Sprintf("Error when trying to join room %s", name), http.StatusNotFound)
-		return
-	}
-
-	log.Println("[S] Upgrading websocket")
-	socket, err := upgrader.Upgrade(w, r, nil)
-
-	if err != nil {
-		log.Fatal("ServeHTTP:", err)
-		return
-	}
-
-	log.Println("[S] Creating client")
-	client := &client{
-		socket: socket,
-		send:   make(chan []byte, messageBufferSize),
-		room:   room,
-	}
-
-	log.Println("[S] Adding client to room")
-	room.join <- client
-	defer func() { room.leave <- client }()
-	go client.write()
-	for _, a := range room.announcements {
-		client.send <- []byte(a)
-	}
-	client.read()
 }
 
 func (r *room) run() {
@@ -84,33 +26,36 @@ func (r *room) run() {
 	}
 }
 
-const (
-	socketBufferSize  = 1024
-	messageBufferSize = 256
-)
-
-var upgrader = &websocket.Upgrader{
-	ReadBufferSize:  socketBufferSize,
-	WriteBufferSize: socketBufferSize,
+func newRoom(name string) *room {
+	return &room{
+		name:          name,
+		announcements: make([]string, 0),
+		forward:       make(chan []byte),
+		join:          make(chan *client),
+		leave:         make(chan *client),
+		clients:       make(map[*client]bool),
+	}
 }
 
-var allrooms map[string]*room = make(map[string]*room)
-
-func createRoom(w http.ResponseWriter, r *http.Request) {
-	roomName := slug.Make(r.FormValue("name"))
-	log.Println(fmt.Sprintf("[S] Creating room %s", roomName))
-	newroom := newRoom(roomName)
-	go newroom.run()
-	allrooms[roomName] = newroom //TODO: Add check for room existence
-	http.Redirect(w, r, fmt.Sprintf("/room/%s", roomName), http.StatusFound)
-	log.Println(fmt.Sprintf("[S] Room %s created", roomName))
+type roomManager struct {
+	rooms map[string]*room
 }
 
-func getRoom(name string) (bool, *room) {
-	room, ok := allrooms[name]
+func (rm *roomManager) getRoom(name string) (bool, *room) {
+	room, ok := rm.rooms[name]
 	if !ok {
 		return false, nil
 	} else {
 		return true, room
+	}
+}
+
+func (rm *roomManager) addRoom(name string, room *room) {
+	rm.rooms[name] = room
+}
+
+func newRoomManager() *roomManager {
+	return &roomManager{
+		rooms: make(map[string]*room),
 	}
 }
