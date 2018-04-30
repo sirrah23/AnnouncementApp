@@ -63,7 +63,7 @@ func joinRoom(w http.ResponseWriter, r *http.Request) {
 
 func createRoom(w http.ResponseWriter, r *http.Request) {
 	roomname := r.FormValue("name")
-	roomlink := slug.Make(roomname)
+	roomlink := rm.roomNameGenerate(slug.Make(roomname))
 	log.Println(fmt.Sprintf("[S] Creating room %s", roomname))
 	newroom := newRoom(roomname)
 	go newroom.run()

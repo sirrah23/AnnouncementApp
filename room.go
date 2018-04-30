@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 type room struct {
 	name          string
 	announcements []string
@@ -52,6 +56,19 @@ func (rm *roomManager) getRoom(name string) (bool, *room) {
 
 func (rm *roomManager) addRoom(name string, room *room) {
 	rm.rooms[name] = room
+}
+
+func (rm *roomManager) roomNameGenerate(name string) (ret string) {
+	var exists bool
+	ret = name
+	_, exists = rm.rooms[ret]
+	id := 0
+	for exists {
+		ret = fmt.Sprintf("%s-%d", name, id)
+		id += 1
+		_, exists = rm.rooms[ret]
+	}
+	return
 }
 
 func newRoomManager() *roomManager {
