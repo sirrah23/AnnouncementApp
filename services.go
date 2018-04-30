@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/websocket"
 	"github.com/gosimple/slug"
@@ -61,11 +62,28 @@ func joinRoom(w http.ResponseWriter, r *http.Request) {
 }
 
 func createRoom(w http.ResponseWriter, r *http.Request) {
-	roomname := slug.Make(r.FormValue("name"))
+	roomname := r.FormValue("name")
+	roomlink := slug.Make(roomname)
 	log.Println(fmt.Sprintf("[S] Creating room %s", roomname))
 	newroom := newRoom(roomname)
 	go newroom.run()
-	rm.addRoom(roomname, newroom) //TODO: Add check for room existence
-	http.Redirect(w, r, fmt.Sprintf("/room/%s", roomname), http.StatusFound)
+	rm.addRoom(roomlink, newroom)
+	http.Redirect(w, r, fmt.Sprintf("/room/%s", roomlink), http.StatusFound)
 	log.Println(fmt.Sprintf("[S] Room %s created", roomname))
+}
+
+type roomExistanceWrapper struct {
+	th *templateHandler
+}
+
+func (rW *roomExistanceWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	path := strings.Split(r.URL.Path, "/")
+	room := path[len(path)-1]
+	ok, _ := rm.getRoom(room)
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "404 Not Found")
+		return
+	}
+	rW.th.ServeHTTP(w, r)
 }
