@@ -123,6 +123,7 @@ func createRoom(w http.ResponseWriter, r *http.Request) {
 	newroom := newRoom(name)
 	go newroom.run()
 	allrooms[name] = newroom
+	http.Redirect(w, r, "/room/"+name, http.StatusFound) //StatusRedirect instead?
 	log.Println(fmt.Sprintf("[S] Room %s created", name))
 }
 
